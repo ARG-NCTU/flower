@@ -63,16 +63,45 @@ You will see that Keras is starting a federated training. Have a look to the [Fl
 
 ### Machines
 
-* Server: 140.113.xxx.xxx
-* Client1: 140.113.yyy.yyy
-* Client2: 140.113.zzz.zzz
+* Server: 140.113.148.99
+* Client1: 140.113.148.100
+* Client2: 140.113.148.106
 
-Docker?
+### Docker
+* pip3 install flwr
+* pip3 install tensorflow
 
 ### Expected Outputs
-
+INFO flower 2023-01-03 14:17:13,562 | server.py:144 | FL finished in 298.8903026818298
+INFO flower 2023-01-03 14:17:13,562 | app.py:192 | app_fit: losses_distributed [(1, 2.3118977546691895), (2, 2.3254003524780273), (3, 2.0776782035827637)]
 
 ### Code Analysis
+The call to tf.keras.datasets.cifar10.load_data() downloads CIFAR10, caches it locally, and then returns the entire training and test set as NumPy ndarrays.
+```shell
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+```
+use MobilNetV2 with 10 output classes
+```shell
+model = tf.keras.applications.MobileNetV2((32, 32, 3), classes=10, weights=None)
+model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
+```
+The Flower server interacts with clients through an interface called Client, When the server selects a particular client for training, it sends training instructions over the network. The client receives those instructions and calls one of the Client methods to run your code
+```shell
+class CifarClient(fl.client.NumPyClient):
+    def get_parameters(self, config):
+        return model.get_weights()
 
+    def fit(self, parameters, config):
+        model.set_weights(parameters)
+        model.fit(x_train, y_train, epochs=1, batch_size=32, steps_per_epoch=3)
+        return model.get_weights(), len(x_train), {}
 
-
+    def evaluate(self, parameters, config):
+        model.set_weights(parameters)
+        loss, accuracy = model.evaluate(x_test, y_test)
+        return loss, len(x_test), {"accuracy": float(accuracy)}
+```
+We can now create an instance of our class CifarClient and add one line to actually run this client:
+```shell
+fl.client.start_numpy_client(server_address="[::]:8080", client=CifarClient())
+```
