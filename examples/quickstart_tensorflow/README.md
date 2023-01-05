@@ -72,8 +72,8 @@ You will see that Keras is starting a federated training. Have a look to the [Fl
 * pip3 install tensorflow
 
 ### Expected Outputs
-INFO flower 2023-01-03 14:17:13,562 | server.py:144 | FL finished in 298.8903026818298
-INFO flower 2023-01-03 14:17:13,562 | app.py:192 | app_fit: losses_distributed [(1, 2.3118977546691895), (2, 2.3254003524780273), (3, 2.0776782035827637)]
+* INFO flower 2023-01-03 14:17:13,562 | server.py:144 | FL finished in 298.8903026818298
+* INFO flower 2023-01-03 14:17:13,562 | app.py:192 | app_fit: losses_distributed [(1, 2.3118977546691895), (2, 2.3254003524780273), (3, 2.0776782035827637)]
 
 ### Code Analysis
 The call to tf.keras.datasets.cifar10.load_data() downloads CIFAR10, caches it locally, and then returns the entire training and test set as NumPy ndarrays.
@@ -105,3 +105,15 @@ We can now create an instance of our class CifarClient and add one line to actua
 ```shell
 fl.client.start_numpy_client(server_address="[::]:8080", client=CifarClient())
 ```
+
+### pseudocode
+Algorithm: Distributed Training with Flower
+
+Input: current model parameters, training config
+Output: updated model parameters, training metrics
+
+1. Server sends training task to client
+2. Client performs training and returns updated model parameters and training metrics
+3. Server updates its copy of the model with the updated parameters
+4. Server updates its training metrics with the metrics returned by the client
+5. Repeat steps 1-4 for multiple epochs or until convergence
