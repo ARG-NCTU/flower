@@ -117,3 +117,6 @@ Output: updated model parameters, training metrics
 3. Server updates its copy of the model with the updated parameters
 4. Server updates its training metrics with the metrics returned by the client
 5. Repeat steps 1-4 for multiple epochs or until convergence
+
+### setup figure
+![setup](flower_setup.png)
